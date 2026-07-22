@@ -1,15 +1,19 @@
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 
-export async function generateIdentity(ephemeral = false) {
+export async function generateIdentity(ephemeral = false, serverAddress = '') {
   const keys = await crypto.subtle.generateKey({ name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1,0,1]), hash: 'SHA-256' }, true, ['encrypt','decrypt']);
   const publicKey = await exportKey(keys.publicKey);
   const id = await hashPublicKey(publicKey);
   const identity = { id, publicKey, ephemeral, privateKey: await exportPrivateKey(keys.privateKey) };
   if (!ephemeral) localStorage.setItem('ghostwire.identity', JSON.stringify(identity));
   else sessionStorage.setItem('ghostwire.identity', JSON.stringify(identity));
-  await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, public_key: publicKey, is_ephemeral: ephemeral }) });
+  await registerIdentity(identity, serverAddress);
   return identity;
+}
+
+export async function registerIdentity(identity, serverAddress = '') {
+  await fetch(`${serverAddress || location.origin}/api/register`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: identity.id, public_key: identity.publicKey, is_ephemeral: identity.ephemeral }) });
 }
 
 export function loadIdentity() {

@@ -16,7 +16,7 @@ import (
 func main() {
 	dbPath := env("GHOSTWIRE_DB", "ghostwire.db")
 	staticDir := env("GHOSTWIRE_STATIC", "./public")
-	addr := env("GHOSTWIRE_ADDR", ":8080")
+	addr := env("GHOSTWIRE_ADDR", ":8787")
 	database, err := db.Open(dbPath)
 	if err != nil {
 		log.Fatal(err)

@@ -1,15 +1,25 @@
 services:
   ghostwire:
-    build: .
-    ports: ["8080:8080"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: server
+    image: ghostwire:local
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
     environment:
+      GHOSTWIRE_ADDR: :8787
       GHOSTWIRE_DB: /data/ghostwire.db
       GHOSTWIRE_STATIC: /app/public
     volumes:
       - ghostwire-data:/data
-    deploy:
-      resources:
-        limits:
-          memory: 128M
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8787/api/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
 volumes:
   ghostwire-data:

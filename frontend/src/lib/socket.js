@@ -1,8 +1,8 @@
 import { writable } from 'svelte/store';
+import { websocketURL } from './server';
 export const messages = writable([]);
-export function connect(identity) {
-  const url = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
-  const ws = new WebSocket(url);
+export function connect(identity, serverAddress = '') {
+  const ws = new WebSocket(websocketURL(serverAddress));
   ws.onmessage = (event) => {
     const msg = JSON.parse(event.data);
     if (msg.type === 'message') {

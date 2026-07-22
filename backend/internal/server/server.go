@@ -23,6 +23,7 @@ func New(db *sql.DB, hub *ws.Hub, staticDir string) *Server {
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc("/api/health", s.health)
 	mux.HandleFunc("/api/register", s.register)
 	mux.HandleFunc("/api/user/", s.user)
 	mux.HandleFunc("/api/invite/create", s.createInvite)
@@ -41,8 +42,27 @@ func metadataStripper(next http.Handler) http.Handler {
 		r.Header.Del("User-Agent")
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		w.Header().Set("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (s *Server) health(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	if err := s.db.PingContext(r.Context()); err != nil {
+		http.Error(w, "database unavailable", http.StatusServiceUnavailable)
+		return
+	}
+	writeJSON(w, map[string]string{"status": "ok", "service": "ghostwire"})
 }
 
 func (s *Server) register(w http.ResponseWriter, r *http.Request) {
