@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"GhostWire WebSocket Event","type":"object","required":["type"],"properties":{"type":{"enum":["message","read_ack"]},"id":{"type":"string"},"room_id":{"type":"string","default":"global"},"sender_id":{"type":"string"},"payload":{"type":"string","description":"Opaque end-to-end encrypted blob"}}}
